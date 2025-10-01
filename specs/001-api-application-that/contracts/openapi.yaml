@@ -1,0 +1,425 @@
+openapi: 3.0.3
+info:
+  title: HTM Neural Network API Core
+  description: |
+    REST API for processing HTM neural network inputs. Accepts multi-dimensional arrays 
+    representing spatial-temporal patterns and returns processed results maintaining 
+    consistent format for API chaining.
+  version: "1.0.0"
+  contact:
+    name: HTM API Team
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://htm-api.example.com/api/v1
+    description: Production server
+
+paths:
+  /process:
+    post:
+      summary: Process HTM neural network input
+      description: |
+        Processes multi-dimensional array input through HTM neural network algorithms.
+        Returns processed results in the same format as input for API chaining.
+        Acknowledges request within 100ms; may return async job ID for long processing.
+      operationId: processHTMInput
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APIRequest'
+            examples:
+              basic_input:
+                summary: Basic 2D array input
+                value:
+                  input:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    data: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+                    metadata:
+                      dimensions: [2, 3]
+                      sensor_id: "sensor001"
+                      version: "v1.0"
+                    timestamp: "2025-09-30T10:00:00Z"
+                  request_id: "req-550e8400-e29b-41d4-a716-446655440001"
+                  priority: "normal"
+      responses:
+        '200':
+          description: Processing completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+              examples:
+                success_response:
+                  summary: Successful processing result
+                  value:
+                    result:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      result: [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]]
+                      metadata:
+                        processing_time_ms: 45
+                        instance_id: "api-001"
+                        algorithm_version: "placeholder-v1.0"
+                      status: "SUCCESS"
+                    request_id: "req-550e8400-e29b-41d4-a716-446655440001"
+                    response_time: "2025-09-30T10:00:00.045Z"
+        '400':
+          description: Invalid input data or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+              examples:
+                validation_error:
+                  summary: Input validation failure
+                  value:
+                    error:
+                      code: "INVALID_INPUT"
+                      message: "Data array dimensions do not match metadata"
+                      details:
+                        expected_dimensions: [2, 3]
+                        actual_dimensions: [2, 2]
+                      retryable: false
+                    request_id: "req-550e8400-e29b-41d4-a716-446655440001"
+                    response_time: "2025-09-30T10:00:00.005Z"
+        '500':
+          description: Internal processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+              examples:
+                processing_error:
+                  summary: Processing failure with retry
+                  value:
+                    error:
+                      code: "PROCESSING_FAILED"
+                      message: "Matrix operation failed during processing"
+                      details:
+                        error_type: "computational_error"
+                        retry_attempt: 1
+                      retryable: true
+                    request_id: "req-550e8400-e29b-41d4-a716-446655440001"
+                    response_time: "2025-09-30T10:00:00.095Z"
+        '503':
+          description: Service temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+              examples:
+                service_unavailable:
+                  summary: Service overloaded
+                  value:
+                    error:
+                      code: "SERVICE_UNAVAILABLE"
+                      message: "Processing queue full, please retry"
+                      details:
+                        queue_size: 1000
+                        estimated_wait_seconds: 30
+                      retryable: true
+                    request_id: "req-550e8400-e29b-41d4-a716-446655440001"
+                    response_time: "2025-09-30T10:00:00.001Z"
+
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns service health status and basic metrics
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  summary: Service healthy
+                  value:
+                    status: "healthy"
+                    timestamp: "2025-09-30T10:00:00Z"
+                    instance_id: "api-001"
+                    metrics:
+                      uptime_seconds: 3600
+                      requests_processed: 1250
+                      average_response_time_ms: 35
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                unhealthy:
+                  summary: Service unhealthy
+                  value:
+                    status: "unhealthy"
+                    timestamp: "2025-09-30T10:00:00Z"
+                    instance_id: "api-001"
+                    error: "High error rate detected"
+
+  /metrics:
+    get:
+      summary: Service metrics endpoint
+      description: Returns detailed service metrics for monitoring
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Service metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+components:
+  schemas:
+    HTMInput:
+      type: object
+      required: [id, data, metadata, timestamp]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the input
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        data:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+              format: float
+          description: Multi-dimensional array representing spatial-temporal patterns
+          example: [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+          minItems: 1
+        metadata:
+          $ref: '#/components/schemas/InputMetadata'
+        timestamp:
+          type: string
+          format: date-time
+          description: When the input was created/received
+          example: "2025-09-30T10:00:00Z"
+
+    InputMetadata:
+      type: object
+      required: [dimensions, sensor_id, version]
+      properties:
+        dimensions:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          description: Shape of the data array
+          example: [2, 3]
+          minItems: 2
+        sensor_id:
+          type: string
+          pattern: '^[a-zA-Z0-9]+$'
+          description: Identifier for the source sensor/system
+          example: "sensor001"
+        processing_hints:
+          type: object
+          description: Optional processing parameters
+          additionalProperties: true
+        version:
+          type: string
+          enum: ["v1.0"]
+          description: API version for compatibility
+          example: "v1.0"
+
+    ProcessingResult:
+      type: object
+      required: [id, result, metadata, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Correlation ID matching input ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        result:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+              format: float
+          description: Processed multi-dimensional array (same format as input)
+          example: [[1.1, 2.1, 3.1], [4.1, 5.1, 6.1]]
+        metadata:
+          $ref: '#/components/schemas/ResultMetadata'
+        status:
+          $ref: '#/components/schemas/ProcessingStatus'
+
+    ResultMetadata:
+      type: object
+      required: [processing_time_ms, instance_id, algorithm_version]
+      properties:
+        processing_time_ms:
+          type: integer
+          minimum: 0
+          description: Time taken for processing in milliseconds
+          example: 45
+        instance_id:
+          type: string
+          description: API instance that processed the request
+          example: "api-001"
+        algorithm_version:
+          type: string
+          description: Version of HTM algorithm used
+          example: "placeholder-v1.0"
+        quality_metrics:
+          type: object
+          description: Optional quality/confidence metrics
+          additionalProperties:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+
+    ProcessingStatus:
+      type: string
+      enum: [SUCCESS, PARTIAL_SUCCESS, FAILED, TIMEOUT, RETRYING]
+      description: Processing result status
+      example: "SUCCESS"
+
+    APIRequest:
+      type: object
+      required: [input, request_id]
+      properties:
+        input:
+          $ref: '#/components/schemas/HTMInput'
+        request_id:
+          type: string
+          format: uuid
+          description: Unique request identifier for tracing
+          example: "req-550e8400-e29b-41d4-a716-446655440001"
+        client_id:
+          type: string
+          pattern: '^[a-zA-Z0-9]*$'
+          description: Optional client identifier
+          example: "client123"
+        priority:
+          $ref: '#/components/schemas/RequestPriority'
+
+    RequestPriority:
+      type: string
+      enum: [low, normal, high]
+      default: normal
+      description: Processing priority level
+      example: "normal"
+
+    APIResponse:
+      type: object
+      required: [request_id, response_time]
+      properties:
+        result:
+          $ref: '#/components/schemas/ProcessingResult'
+        error:
+          $ref: '#/components/schemas/APIError'
+        request_id:
+          type: string
+          format: uuid
+          description: Correlation ID from request
+          example: "req-550e8400-e29b-41d4-a716-446655440001"
+        response_time:
+          type: string
+          format: date-time
+          description: When response was generated
+          example: "2025-09-30T10:00:00.045Z"
+
+    APIError:
+      type: object
+      required: [code, message, retryable]
+      properties:
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: "INVALID_INPUT"
+        message:
+          type: string
+          description: Human-readable error description
+          example: "Data array dimensions do not match metadata"
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+        retryable:
+          type: boolean
+          description: Whether the request can be retried
+          example: false
+
+    HealthResponse:
+      type: object
+      required: [status, timestamp, instance_id]
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Overall service health status
+        timestamp:
+          type: string
+          format: date-time
+          description: When health check was performed
+        instance_id:
+          type: string
+          description: Instance identifier
+        metrics:
+          type: object
+          description: Basic health metrics
+          properties:
+            uptime_seconds:
+              type: integer
+              minimum: 0
+            requests_processed:
+              type: integer
+              minimum: 0
+            average_response_time_ms:
+              type: number
+              minimum: 0
+        error:
+          type: string
+          description: Error description if unhealthy
+
+    MetricsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        instance_id:
+          type: string
+        metrics:
+          type: object
+          properties:
+            http:
+              type: object
+              properties:
+                requests_total:
+                  type: integer
+                requests_per_second:
+                  type: number
+                response_time_p95_ms:
+                  type: number
+                error_rate:
+                  type: number
+            processing:
+              type: object
+              properties:
+                operations_total:
+                  type: integer
+                average_processing_time_ms:
+                  type: number
+                queue_size:
+                  type: integer
+                worker_utilization:
+                  type: number
+            system:
+              type: object
+              properties:
+                memory_usage_mb:
+                  type: number
+                cpu_usage_percent:
+                  type: number
+                goroutines_count:
+                  type: integer

@@ -1,50 +1,73 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+Version change: new → 1.0.0
+Modified principles: All principles newly defined for HTM (Hierarchical Temporal Memory)
+Added sections: Core Principles, Azure & Microsoft Technology Standards, Research & Development Requirements
+Removed sections: None (initial version)
+Templates requiring updates:
+✅ Updated: .specify/templates/plan-template.md (constitution check section aligns)
+✅ Updated: .specify/templates/spec-template.md (requirements align with principles)
+✅ Updated: .specify/templates/tasks-template.md (task categorization matches principles)
+Follow-up TODOs: None - all placeholders resolved
+-->
+
+# HTM (Hierarchical Temporal Memory) Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Research-Driven Development
+Every feature and algorithm implementation begins with thorough research into HTM theory, neuroscience principles, and existing implementations. Research must be documented with clear hypotheses, experimental design, and success criteria. All theoretical foundations must be validated against current neuroscience literature and HTM theory before implementation begins.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+**Rationale**: HTM is based on complex neuroscience principles that require deep understanding to implement correctly and effectively.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Biologically-Inspired Architecture
+All implementations must adhere to HTM's core biological principles: sparse distributed representations, temporal memory, spatial pooling, and hierarchical structure. Code architecture should mirror the biological systems being modeled, with clear separation between spatial and temporal processing components.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: Maintaining biological fidelity ensures the system captures the essential properties that make HTM effective for intelligence tasks.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Test-Driven Scientific Development (NON-NEGOTIABLE)
+TDD is mandatory with emphasis on scientific validation: Hypothesis → Test design → Implementation → Validation. All algorithms must have comprehensive unit tests, integration tests, and behavioral validation against known HTM properties. Performance benchmarks must validate computational efficiency and biological plausibility.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Scientific rigor ensures implementations are correct, reproducible, and maintain the theoretical properties of HTM.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Scalable Cloud Architecture for AI Research
+All solutions must be designed for Azure deployment with focus on AI/ML workloads, high-performance computing, and research collaboration. Architecture decisions must prioritize Azure AI services, scalable compute resources, and data management for large-scale experiments. Support for distributed training and inference is required.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: HTM research requires significant computational resources and benefits from cloud-scale infrastructure for experimentation and collaboration.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Performance & Scientific Rigor by Design
+Performance optimization and scientific accuracy are equally important. All implementations must include computational complexity analysis, memory usage profiling, and biological plausibility validation. Benchmarks must compare against both artificial neural networks and biological baselines where applicable.
+
+**Rationale**: HTM's value proposition depends on both computational efficiency and biological accuracy, requiring careful optimization and validation.
+
+## Azure & Microsoft Technology Standards
+
+**Technology Stack**: Prioritize .NET ecosystem for performance-critical components, Python for research and prototyping, TypeScript for web interfaces, and Azure AI/ML services for scalable deployment. Use proven Microsoft patterns for high-performance computing and machine learning workloads.
+
+**Deployment**: All solutions deploy to Azure with emphasis on Azure Machine Learning, Azure Cognitive Services, and high-performance computing resources. Support distributed training, model versioning, and automated experiment tracking.
+
+**Monitoring**: Implement Azure Monitor, Application Insights for performance tracking, and custom metrics for HTM-specific measurements (sparsity levels, prediction accuracy, temporal stability). All research experiments must be fully observable and reproducible.
+
+**Documentation**: Use clear naming conventions reflecting HTM terminology, thorough scientific documentation, and maintain research notes and architectural decision records for all algorithmic choices.
+
+## Research & Development Requirements
+
+**Scientific Rigor**: All algorithmic implementations must reference peer-reviewed neuroscience literature and HTM theory papers. Code must include citations and theoretical justifications for design decisions.
+
+**Reproducibility**: All experiments must be reproducible with documented parameters, random seeds, and environment specifications. Research data and experiment results must be versioned and archived.
+
+**Collaboration**: Support for distributed research teams with shared datasets, experiment tracking, and collaborative development workflows. All research artifacts must be properly documented and accessible.
+
+**Intellectual Property**: Ensure compliance with open-source HTM community standards while respecting Avanade's intellectual property requirements. Contributions to open-source HTM projects should be coordinated with legal and business stakeholders.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices and standards for HTM research and development. All pull requests and code reviews must verify compliance with both software engineering principles and scientific rigor requirements. Complexity that violates biological plausibility or performance requirements must be justified with documented research value and mitigation strategies.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Process**: Constitution changes require documented rationale, scientific literature review, and approval from both technical and research stakeholders. Version increments follow semantic versioning: MAJOR for incompatible theoretical changes, MINOR for new algorithmic additions, PATCH for implementation clarifications.
+
+**Research Review**: Regular scientific reviews ensure ongoing adherence to HTM theory and neuroscience principles. Algorithm implementations must be validated against established HTM benchmarks and biological data where available.
+
+**Runtime Guidance**: Developers should reference `.github/prompts/` for operational guidance, `.specify/templates/` for implementation patterns, and maintain current knowledge of HTM theory through Numenta's research publications and the Thousand Brains Project documentation.
+
+**Version**: 1.0.0 | **Ratified**: 2025-09-30 | **Last Amended**: 2025-09-30
