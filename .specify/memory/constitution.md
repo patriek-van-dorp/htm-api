@@ -1,14 +1,14 @@
 <!--
 Sync Impact Report:
-Version change: new → 1.0.0
-Modified principles: All principles newly defined for HTM (Hierarchical Temporal Memory)
-Added sections: Core Principles, Azure & Microsoft Technology Standards, Research & Development Requirements
-Removed sections: None (initial version)
+Version change: 1.0.0 → 1.1.0
+Modified principles: Azure & Microsoft Technology Standards - Technology Stack section
+Added sections: Go language allowance for high-performance libraries
+Removed sections: None
 Templates requiring updates:
 ✅ Updated: .specify/templates/plan-template.md (constitution check section aligns)
-✅ Updated: .specify/templates/spec-template.md (requirements align with principles)
+✅ Updated: .specify/templates/spec-template.md (requirements align with principles)  
 ✅ Updated: .specify/templates/tasks-template.md (task categorization matches principles)
-Follow-up TODOs: None - all placeholders resolved
+Follow-up TODOs: None - Go allowance resolves C1 constitution violation
 -->
 
 # HTM (Hierarchical Temporal Memory) Constitution
@@ -42,7 +42,7 @@ Performance optimization and scientific accuracy are equally important. All impl
 
 ## Azure & Microsoft Technology Standards
 
-**Technology Stack**: Prioritize .NET ecosystem for performance-critical components, Python for research and prototyping, TypeScript for web interfaces, and Azure AI/ML services for scalable deployment. Use proven Microsoft patterns for high-performance computing and machine learning workloads.
+**Technology Stack**: Prioritize .NET ecosystem for performance-critical components, with Go acceptable for high-performance libraries and systems programming where performance requirements can be demonstrated. Python for research and prototyping, TypeScript for web interfaces, and Azure AI/ML services for scalable deployment. Use proven Microsoft patterns for high-performance computing and machine learning workloads.
 
 **Deployment**: All solutions deploy to Azure with emphasis on Azure Machine Learning, Azure Cognitive Services, and high-performance computing resources. Support distributed training, model versioning, and automated experiment tracking.
 
@@ -70,4 +70,4 @@ This constitution supersedes all other development practices and standards for H
 
 **Runtime Guidance**: Developers should reference `.github/prompts/` for operational guidance, `.specify/templates/` for implementation patterns, and maintain current knowledge of HTM theory through Numenta's research publications and the Thousand Brains Project documentation.
 
-**Version**: 1.0.0 | **Ratified**: 2025-09-30 | **Last Amended**: 2025-09-30
+**Version**: 1.1.0 | **Ratified**: 2025-09-30 | **Last Amended**: 2025-10-01

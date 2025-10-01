@@ -330,27 +330,3 @@ func generateUniqueMatrix(id int) [][]float64 {
 
 	return matrix
 }
-
-func calculateAverageResponseTime(times []time.Duration) time.Duration {
-	if len(times) == 0 {
-		return 0
-	}
-
-	var total time.Duration
-	for _, t := range times {
-		total += t
-	}
-
-	return total / time.Duration(len(times))
-}
-
-// Helper function (reuse from other test files)
-func setupTestRouter() *gin.Engine {
-	router := gin.New()
-
-	// TODO: These routes will fail until handlers are implemented
-	// api := router.Group("/api/v1")
-	// api.POST("/process", handlers.ProcessHTMInput)
-
-	return router
-}
