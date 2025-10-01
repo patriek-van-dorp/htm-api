@@ -223,16 +223,6 @@ func TestHTMProcessingDataIntegrity(t *testing.T) {
 
 // Helper functions
 
-func setupTestRouter() *gin.Engine {
-	router := gin.New()
-
-	// TODO: These routes will fail until handlers are implemented
-	// api := router.Group("/api/v1")
-	// api.POST("/process", handlers.ProcessHTMInput)
-
-	return router
-}
-
 func makeProcessingRequest(t *testing.T, router *gin.Engine, requestBody map[string]interface{}) map[string]interface{} {
 	requestBodyBytes, err := json.Marshal(requestBody)
 	require.NoError(t, err)
@@ -253,15 +243,4 @@ func makeProcessingRequest(t *testing.T, router *gin.Engine, requestBody map[str
 	require.NoError(t, err)
 
 	return response
-}
-
-func generateTestMatrix(rows, cols int) [][]float64 {
-	matrix := make([][]float64, rows)
-	for i := range matrix {
-		matrix[i] = make([]float64, cols)
-		for j := range matrix[i] {
-			matrix[i][j] = float64(i*cols + j + 1)
-		}
-	}
-	return matrix
 }

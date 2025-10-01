@@ -343,14 +343,3 @@ func TestErrorHandlingConcurrent(t *testing.T) {
 		<-done
 	}
 }
-
-// Helper function (reuse from htm_processing_test.go)
-func setupTestRouter() *gin.Engine {
-	router := gin.New()
-
-	// TODO: These routes will fail until handlers are implemented
-	// api := router.Group("/api/v1")
-	// api.POST("/process", handlers.ProcessHTMInput)
-
-	return router
-}

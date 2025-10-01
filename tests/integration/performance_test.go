@@ -343,17 +343,6 @@ func TestMemoryUsageUnderLoad(t *testing.T) {
 
 // Helper functions
 
-func generateTestMatrix(rows, cols int) [][]float64 {
-	matrix := make([][]float64, rows)
-	for i := range matrix {
-		matrix[i] = make([]float64, cols)
-		for j := range matrix[i] {
-			matrix[i][j] = float64(i*cols + j + 1)
-		}
-	}
-	return matrix
-}
-
 func calculatePercentiles(times []time.Duration) (p50, p95, p99 time.Duration) {
 	if len(times) == 0 {
 		return 0, 0, 0
@@ -387,28 +376,4 @@ func calculatePercentiles(times []time.Duration) (p50, p95, p99 time.Duration) {
 	}
 
 	return sorted[p50Index], sorted[p95Index], sorted[p99Index]
-}
-
-func calculateAverageResponseTime(times []time.Duration) time.Duration {
-	if len(times) == 0 {
-		return 0
-	}
-
-	var total time.Duration
-	for _, t := range times {
-		total += t
-	}
-
-	return total / time.Duration(len(times))
-}
-
-// Helper function (reuse from other test files)
-func setupTestRouter() *gin.Engine {
-	router := gin.New()
-
-	// TODO: These routes will fail until handlers are implemented
-	// api := router.Group("/api/v1")
-	// api.POST("/process", handlers.ProcessHTMInput)
-
-	return router
 }
