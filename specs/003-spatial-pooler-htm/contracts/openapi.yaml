@@ -1,0 +1,572 @@
+openapi: 3.1.0
+info:
+  title: HTM API - Spatial Pooler Extension
+  description: |
+    HTM (Hierarchical Temporal Memory) API extension for spatial pooler functionality.
+    The spatial pooler acts as the first processing layer in the cortical column,
+    normalizing encoder outputs into consistent sparse distributed representations.
+  version: 1.0.0
+  contact:
+    name: HTM API Support
+    email: support@htm-project.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.htm-project.com/v1
+    description: Production server
+  - url: https://staging-api.htm-project.com/v1
+    description: Staging server
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /spatial-pooler/process:
+    post:
+      summary: Process encoder output through spatial pooler
+      description: |
+        Transforms raw encoder output into normalized sparse distributed representations
+        with consistent sparsity levels (2-5%) and semantic continuity preservation.
+      operationId: processSpatialPooler
+      tags:
+        - Spatial Pooler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpatialPoolerProcessRequest'
+            examples:
+              categorical_input:
+                summary: Categorical encoder output
+                value:
+                  input:
+                    encoder_output:
+                      width: 2048
+                      active_bits: [10, 25, 67, 89, 134, 256, 445, 678, 789, 901]
+                      sparsity: 0.0048828125
+                    input_id: "cat-input-uuid-123"
+                    learning_enabled: true
+                    metadata:
+                      sensor_type: "categorical"
+                      encoder_version: "1.0.0"
+                  config:
+                    mode: "deterministic"
+                    learning_enabled: true
+                  request_id: "req-uuid-456"
+                  client_id: "client-123"
+      responses:
+        '200':
+          description: Successful spatial pooler processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpatialPoolerProcessResponse'
+              examples:
+                successful_processing:
+                  summary: Successful normalization
+                  value:
+                    result:
+                      normalized_sdr:
+                        width: 2048
+                        active_bits: [12, 34, 78, 123, 234, 345, 567, 789, 890, 1001]
+                        sparsity: 0.0244140625
+                      input_id: "cat-input-uuid-123"
+                      processing_time_ms: 8.5
+                      active_columns: [12, 34, 78, 123, 234, 345, 567, 789, 890, 1001]
+                      avg_overlap: 0.75
+                      sparsity_level: 0.0244140625
+                      learning_occurred: true
+                      boosting_applied: false
+                    request_id: "req-uuid-456"
+                    processing_time_ms: 9.2
+                    status: "success"
+        '400':
+          description: Invalid input or configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                oversized_input:
+                  summary: Input exceeds dimensions
+                  value:
+                    error:
+                      type: "invalid_input"
+                      message: "Encoder output exceeds expected input dimensions"
+                      input_id: "cat-input-uuid-123"
+                      details:
+                        expected_width: 2048
+                        actual_width: 4096
+                        config_field: "input_dimensions"
+                    request_id: "req-uuid-456"
+                    status: "error"
+        '500':
+          description: Internal processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /spatial-pooler/config:
+    get:
+      summary: Get spatial pooler configuration
+      description: Retrieve current spatial pooler configuration parameters
+      operationId: getSpatialPoolerConfig
+      tags:
+        - Spatial Pooler
+      responses:
+        '200':
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+    
+    put:
+      summary: Update spatial pooler configuration
+      description: |
+        Update spatial pooler configuration parameters. Only specified
+        parameters will be updated, others remain unchanged.
+      operationId: updateSpatialPoolerConfig
+      tags:
+        - Spatial Pooler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigUpdateRequest'
+      responses:
+        '200':
+          description: Configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+        '400':
+          description: Invalid configuration parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /spatial-pooler/metrics:
+    get:
+      summary: Get spatial pooler metrics
+      description: Retrieve performance and behavioral metrics for monitoring
+      operationId: getSpatialPoolerMetrics
+      tags:
+        - Spatial Pooler
+      responses:
+        '200':
+          description: Current metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /spatial-pooler/reset:
+    post:
+      summary: Reset spatial pooler state
+      description: |
+        Reset spatial pooler learning state, duty cycles, and boost factors.
+        Configuration can be preserved or reset based on request parameters.
+      operationId: resetSpatialPooler
+      tags:
+        - Spatial Pooler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetRequest'
+      responses:
+        '200':
+          description: Reset completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetResponse'
+
+components:
+  schemas:
+    SDR:
+      type: object
+      description: Sparse Distributed Representation
+      properties:
+        width:
+          type: integer
+          minimum: 1
+          description: Total number of bits in the representation
+          example: 2048
+        active_bits:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+          description: Sorted array of active bit indices
+          example: [10, 25, 67, 89, 134]
+        sparsity:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Percentage of active bits (0.0-1.0)
+          example: 0.0244140625
+      required:
+        - width
+        - active_bits
+        - sparsity
+
+    SpatialPoolerMode:
+      type: string
+      enum: [deterministic, randomized]
+      description: |
+        Processing mode for spatial pooler:
+        - deterministic: Identical inputs produce identical outputs
+        - randomized: Controlled randomness for learning purposes
+
+    PoolingInput:
+      type: object
+      properties:
+        encoder_output:
+          $ref: '#/components/schemas/SDR'
+        input_id:
+          type: string
+          description: Unique identifier for tracking
+          example: "uuid-string-123"
+        learning_enabled:
+          type: boolean
+          description: Override learning mode for this input
+          default: true
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional context information
+      required:
+        - encoder_output
+        - input_id
+
+    PoolingConfig:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/SpatialPoolerMode'
+        learning_enabled:
+          type: boolean
+          default: true
+
+    SpatialPoolerProcessRequest:
+      type: object
+      properties:
+        input:
+          $ref: '#/components/schemas/PoolingInput'
+        config:
+          $ref: '#/components/schemas/PoolingConfig'
+        request_id:
+          type: string
+          description: Unique request identifier
+        client_id:
+          type: string
+          description: Client identifier (optional)
+      required:
+        - input
+        - request_id
+
+    PoolingResult:
+      type: object
+      properties:
+        normalized_sdr:
+          $ref: '#/components/schemas/SDR'
+        input_id:
+          type: string
+        processing_time_ms:
+          type: number
+          description: Processing time in milliseconds
+        active_columns:
+          type: array
+          items:
+            type: integer
+          description: Indices of active columns
+        avg_overlap:
+          type: number
+          description: Average overlap score for active columns
+        sparsity_level:
+          type: number
+          minimum: 0.02
+          maximum: 0.05
+          description: Actual sparsity level achieved
+        learning_occurred:
+          type: boolean
+          description: Whether learning modifications were applied
+        boosting_applied:
+          type: boolean
+          description: Whether boosting was applied
+      required:
+        - normalized_sdr
+        - input_id
+        - processing_time_ms
+        - sparsity_level
+
+    SpatialPoolerProcessResponse:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/PoolingResult'
+        request_id:
+          type: string
+        processing_time_ms:
+          type: number
+        status:
+          type: string
+          enum: [success]
+      required:
+        - result
+        - request_id
+        - status
+
+    SpatialPoolerConfig:
+      type: object
+      properties:
+        input_dimensions:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          description: Input space dimensions
+        column_dimensions:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+          description: Column space dimensions
+        potential_radius:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Radius for potential synapse connections
+        potential_pct:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Percentage of potential synapses to create
+        global_inhibition:
+          type: boolean
+          description: Use global vs local competitive inhibition
+        local_area_density:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Target active density for local inhibition
+        num_active_columns:
+          type: integer
+          minimum: 1
+          description: Fixed number of active columns (global inhibition)
+        stimulus_threshold:
+          type: integer
+          minimum: 0
+          description: Minimum overlap to be considered for activation
+        syn_perm_inc:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Permanence increment for active synapses
+        syn_perm_dec:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Permanence decrement for inactive synapses
+        syn_perm_connected:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Threshold for connected synapse
+        syn_perm_trim_threshold:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Minimum permanence before trimming
+        duty_cycle_period:
+          type: integer
+          minimum: 1
+          description: Period for duty cycle moving average
+        boost_strength:
+          type: number
+          minimum: 0
+          description: Strength of boosting for inactive columns
+        learning_enabled:
+          type: boolean
+          description: Enable/disable learning mode
+        mode:
+          $ref: '#/components/schemas/SpatialPoolerMode'
+
+    ConfigResponse:
+      type: object
+      properties:
+        config:
+          $ref: '#/components/schemas/SpatialPoolerConfig'
+        message:
+          type: string
+          description: Optional status message
+        status:
+          type: string
+          enum: [success]
+      required:
+        - config
+        - status
+
+    ConfigUpdateRequest:
+      type: object
+      properties:
+        config:
+          $ref: '#/components/schemas/SpatialPoolerConfig'
+      required:
+        - config
+
+    SpatialPoolerMetrics:
+      type: object
+      properties:
+        total_processed:
+          type: integer
+          minimum: 0
+          description: Total number of inputs processed
+        average_processing_time_ms:
+          type: number
+          minimum: 0
+          description: Moving average processing time
+        learning_iterations:
+          type: integer
+          minimum: 0
+          description: Number of learning iterations performed
+        average_sparsity:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Moving average output sparsity
+        boosting_events:
+          type: integer
+          minimum: 0
+          description: Number of times boosting was applied
+        error_counts:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+          description: Count of errors by type
+        column_usage_stats:
+          type: object
+          properties:
+            min_usage:
+              type: number
+            max_usage:
+              type: number
+            std_deviation:
+              type: number
+        overlap_score_stats:
+          type: object
+          properties:
+            min_overlap:
+              type: number
+            max_overlap:
+              type: number
+            average_overlap:
+              type: number
+
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          $ref: '#/components/schemas/SpatialPoolerMetrics'
+        status:
+          type: string
+          enum: [success]
+      required:
+        - metrics
+        - status
+
+    ResetRequest:
+      type: object
+      properties:
+        reset_learning:
+          type: boolean
+          default: true
+          description: Reset learning state
+        reset_duty_cycles:
+          type: boolean
+          default: true
+          description: Reset duty cycles
+        reset_boost_factors:
+          type: boolean
+          default: true
+          description: Reset boost factors
+        preserve_config:
+          type: boolean
+          default: true
+          description: Preserve configuration
+
+    ResetResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        reset_components:
+          type: array
+          items:
+            type: string
+          description: Components that were reset
+        preserved_components:
+          type: array
+          items:
+            type: string
+          description: Components that were preserved
+        status:
+          type: string
+          enum: [success]
+      required:
+        - message
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [invalid_input, configuration_error, processing_error, performance_error, learning_error]
+            message:
+              type: string
+            input_id:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+          required:
+            - type
+            - message
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [error]
+      required:
+        - error
+        - status
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Spatial Pooler
+    description: HTM spatial pooler operations for encoder output normalization

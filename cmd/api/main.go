@@ -14,12 +14,23 @@ import (
 	"github.com/htm-project/neural-api/internal/api"
 	"github.com/htm-project/neural-api/internal/handlers"
 	"github.com/htm-project/neural-api/internal/infrastructure/config"
+	"github.com/htm-project/neural-api/internal/ports"
 	"github.com/htm-project/neural-api/internal/services"
 )
 
+// Application holds the application state.
+type Application struct {
+	config           *config.IntegrationConfig
+	server           *http.Server
+	router           *gin.Engine
+	shutdownCh       chan os.Signal
+	spatialPoolerSvc ports.SpatialPoolingService
+	metricsCollector *SimpleMetricsCollector
+}
+
 func main() {
 	// Load configuration
-	cfg := config.Load()
+	cfg := config.NewDefaultIntegrationConfig()
 
 	// Initialize application
 	app, err := initializeApplication(cfg)
@@ -33,18 +44,9 @@ func main() {
 	}
 }
 
-// Application represents the main application structure.
-type Application struct {
-	config     *config.Config
-	server     *http.Server
-	router     *gin.Engine
-	shutdownCh chan os.Signal
-}
-
 // initializeApplication sets up the application with all dependencies.
-func initializeApplication(cfg *config.Config) (*Application, error) {
+func initializeApplication(cfg *config.IntegrationConfig) (*Application, error) {
 	// Set Gin mode based on environment
-	// Default to debug mode for development
 	gin.SetMode(gin.DebugMode)
 
 	// Create Gin engine
@@ -53,6 +55,13 @@ func initializeApplication(cfg *config.Config) (*Application, error) {
 	// Initialize metrics collector (simplified implementation)
 	metricsCollector := &SimpleMetricsCollector{}
 
+	// Initialize spatial pooler service with HTM configuration
+	spatialPoolerConfig := cfg.Application.SpatialPooler
+	spatialPoolerSvc, err := services.NewSpatialPoolingService(spatialPoolerConfig, "main-instance")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create spatial pooler service: %w", err)
+	}
+
 	// Initialize services
 	matrixProcessor := services.NewMatrixProcessor(metricsCollector)
 	validationService := services.NewValidationService(metricsCollector)
@@ -60,8 +69,10 @@ func initializeApplication(cfg *config.Config) (*Application, error) {
 
 	// Initialize handlers
 	processHandler := handlers.NewProcessHandler(processingService, validationService, metricsCollector)
-	healthHandler := handlers.NewHealthHandler(processingService, metricsCollector)
+	healthHandler := handlers.NewHealthHandler(processingService, spatialPoolerSvc, metricsCollector)
 	metricsHandler := handlers.NewMetricsHandler(metricsCollector)
+	spatialPoolerHandler := handlers.NewSpatialPoolerHandler(spatialPoolerSvc)
+
 	httpHandler := handlers.NewHTTPHandler(
 		processingService,
 		validationService,
@@ -78,9 +89,10 @@ func initializeApplication(cfg *config.Config) (*Application, error) {
 	metricsMiddleware := middlewareFactory.CreateMetricsMiddleware(metricsCollector)
 	corsMiddleware := middlewareFactory.CreateCORSMiddleware()
 
-	// Initialize router
+	// Initialize router with spatial pooler handler
 	appRouter := api.NewRouter(
 		httpHandler,
+		spatialPoolerHandler,
 		loggingMiddleware,
 		errorMiddleware,
 		metricsMiddleware,
@@ -98,7 +110,7 @@ func initializeApplication(cfg *config.Config) (*Application, error) {
 		Handler:      router,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
-		IdleTimeout:  cfg.Server.ReadTimeout * 2,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
 
 	// Setup shutdown channel
@@ -106,10 +118,12 @@ func initializeApplication(cfg *config.Config) (*Application, error) {
 	signal.Notify(shutdownCh, syscall.SIGINT, syscall.SIGTERM)
 
 	return &Application{
-		config:     cfg,
-		server:     server,
-		router:     router,
-		shutdownCh: shutdownCh,
+		config:           cfg,
+		server:           server,
+		router:           router,
+		shutdownCh:       shutdownCh,
+		spatialPoolerSvc: spatialPoolerSvc,
+		metricsCollector: metricsCollector,
 	}, nil
 }
 

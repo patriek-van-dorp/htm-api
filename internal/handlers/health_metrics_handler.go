@@ -10,18 +10,21 @@ import (
 
 // HealthHandlerImpl implements the HealthHandler interface.
 type HealthHandlerImpl struct {
-	processingService ports.ProcessingService
-	metricsCollector  ports.MetricsCollector
+	processingService     ports.ProcessingService
+	spatialPoolingService ports.SpatialPoolingService
+	metricsCollector      ports.MetricsCollector
 }
 
 // NewHealthHandler creates a new health handler.
 func NewHealthHandler(
 	processingService ports.ProcessingService,
+	spatialPoolingService ports.SpatialPoolingService,
 	metricsCollector ports.MetricsCollector,
 ) ports.HealthHandler {
 	return &HealthHandlerImpl{
-		processingService: processingService,
-		metricsCollector:  metricsCollector,
+		processingService:     processingService,
+		spatialPoolingService: spatialPoolingService,
+		metricsCollector:      metricsCollector,
 	}
 }
 
@@ -39,10 +42,24 @@ func (h *HealthHandlerImpl) HandleHealthCheck(ctx context.Context) (map[string]i
 
 	// Add service-specific health checks
 	serviceHealth := map[string]interface{}{
-		"processing_service": h.processingService != nil,
-		"metrics_collector":  h.metricsCollector != nil,
-		"uptime_seconds":     time.Since(startTime).Seconds(),
+		"processing_service":      h.processingService != nil,
+		"spatial_pooling_service": h.spatialPoolingService != nil,
+		"metrics_collector":       h.metricsCollector != nil,
+		"uptime_seconds":          time.Since(startTime).Seconds(),
 	}
+
+	// Check spatial pooler health
+	spatialPoolerHealthy := true
+	if h.spatialPoolingService != nil {
+		if err := h.spatialPoolingService.HealthCheck(ctx); err != nil {
+			spatialPoolerHealthy = false
+			serviceHealth["spatial_pooler_error"] = err.Error()
+		}
+	} else {
+		spatialPoolerHealthy = false
+	}
+	serviceHealth["spatial_pooler_healthy"] = spatialPoolerHealthy
+
 	healthData["service"] = serviceHealth
 
 	// Overall health status
@@ -53,6 +70,9 @@ func (h *HealthHandlerImpl) HandleHealthCheck(ctx context.Context) (map[string]i
 			break
 		}
 	}
+
+	// Include spatial pooler health in overall status
+	allHealthy = allHealthy && spatialPoolerHealthy
 
 	healthData["healthy"] = allHealthy
 

@@ -84,7 +84,8 @@ As a developer building HTM-based applications, I need a generic sensor package 
 
 ### Functional Requirements
 - **FR-001**: System MUST accept any serializable Go type (convertible to bytes) through a generic interface
-- **FR-002**: System MUST output Sparsely Distributed Representations (SDRs) that conform to HTM algorithm requirements
+- **FR-002**: System MUST output raw encoded representations that can be processed by spatial pooler components before final SDR generation
+- **FR-020**: System MUST provide both raw encoding output for spatial pooler integration and direct SDR output for standalone operation
 - **FR-003**: System MUST allow developers to inject custom encoding logic for specific data types
 - **FR-004**: System MUST provide built-in encoders for common data types (numeric, categorical, text, spatial)
 - **FR-005**: System MUST maintain configurable sparsity levels (typically 2-5% active bits)
@@ -102,10 +103,13 @@ As a developer building HTM-based applications, I need a generic sensor package 
 - **FR-017**: System MUST return empty/default SDR when encoding operations fail (silent failure mode)
 - **FR-018**: System MUST support input data volumes up to 1MB per encoding operation (medium data constraint)
 - **FR-019**: System MUST support multi-SDR collections for spatial subdivision and complex data structures
+- **FR-021**: System MUST provide encoder output in a format compatible with spatial pooler normalization requirements
+- **FR-022**: System MUST maintain dual output modes: raw encoding for spatial pooler integration and processed SDRs for direct HTM processing
 
 ### Key Entities
-- **Sensor Interface**: Defines the contract for all sensor implementations, specifying input processing and SDR output methods
-- **SDR Representation**: Binary vector structure with configurable dimensions, sparsity level, and active bit positions
+- **Sensor Interface**: Defines the contract for all sensor implementations, specifying input processing and dual output methods (raw encoding and SDR)
+- **Raw Encoding Output**: Intermediate representation suitable for spatial pooler normalization before final SDR generation
+- **SDR Representation**: Binary vector structure with configurable dimensions, sparsity level, and active bit positions for direct HTM processing
 - **Encoding Configuration**: Parameters that control how input data is transformed, including ranges, resolution, and semantic mapping rules
 - **Sensor Registry**: Management system for registering, discovering, and instantiating different sensor types
 - **Batch Processor**: Efficient processing system for multiple inputs with configurable batch sizes and strategies

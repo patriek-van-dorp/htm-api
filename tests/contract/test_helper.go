@@ -87,7 +87,7 @@ func setupTestRouter() *gin.Engine {
 	corsMiddleware := middlewareFactory.CreateCORSMiddleware()
 
 	// Initialize router
-	appRouter := api.NewRouter(
+	appRouter := api.NewRouterWithoutSpatialPooler(
 		httpHandler,
 		loggingMiddleware,
 		errorMiddleware,

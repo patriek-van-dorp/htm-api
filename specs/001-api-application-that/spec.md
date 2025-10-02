@@ -103,12 +103,13 @@ As an external system or application, I need to send input data to the HTM neura
 - **FR-007**: System MUST support horizontal scaling with multiple instances handling different sensor inputs
 - **FR-008**: System MUST provide consistent API interface for future feature integration
 - **FR-009**: System MUST NOT require authentication for current implementation (future feature)
-- **FR-010**: System MUST accept multi-dimensional arrays representing spatial-temporal patterns as HTM input format
-- **FR-011**: System MUST return multi-dimensional arrays (same format as input) to enable API chaining
+- **FR-010**: System MUST accept Sparse Distributed Representations (SDRs) as input format for HTM neural network processing, compatible with sensor package outputs and spatial pooler components
+- **FR-011**: System MUST return processed SDRs (same format as input) to enable API chaining and spatial pooler integration
+- **FR-014**: System MUST integrate with spatial pooler component as the first processing layer in the cortical column before other HTM neural network operations
 
 ### Key Entities *(include if feature involves data)*
-- **HTM Input**: Represents multi-dimensional arrays containing spatial-temporal pattern data required for HTM neural network processing, including temporal sequences and spatial patterns
-- **Processing Result**: Represents the output containing multi-dimensional arrays (same format as input) from HTM neural network computation, enabling API chaining
+- **HTM Input**: Represents Sparse Distributed Representations (SDRs) containing spatial-temporal pattern data required for HTM neural network processing, compatible with sensor outputs and spatial pooler components
+- **Processing Result**: Represents the output containing processed SDRs (same format as input) from HTM neural network computation, enabling API chaining and integration with cortical column components
 - **API Request**: Represents an incoming request containing HTM input data and any metadata required for processing
 - **API Response**: Represents the response containing either successful processing results or error information
 
